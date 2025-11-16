@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -23,8 +24,14 @@ func InitDB() {
 		log.Fatal("Error parsing connection config: ", err)
 	}
 
+	dbPort, errPort := strconv.ParseUint(os.Getenv("DB_PORT"), 10, 32)
+
+	if err != nil {
+		fmt.Println("Invalid input:", errPort)
+	}
+
 	config.ConnConfig.Host = os.Getenv("DB_HOST")
-	config.ConnConfig.Port = 5437
+	config.ConnConfig.Port = uint16(dbPort)
 	config.ConnConfig.User = os.Getenv("DB_USERNAME")
 	config.ConnConfig.Password = os.Getenv("DB_PASSWORD")
 	config.ConnConfig.Database = os.Getenv("DB_NAME")
