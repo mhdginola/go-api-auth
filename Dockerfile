@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o src/main .
+RUN go build -o main src/main.go
 
 EXPOSE 9300
 
