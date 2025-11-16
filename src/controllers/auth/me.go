@@ -20,10 +20,11 @@ func ProfileHandler(c *gin.Context) {
 
 	ctx := context.Background()
 	var username string
-	row := conn.QueryRow(ctx, "SELECT username FROM users WHERE id=$1", userID)
-	switch err := row.Scan(&username); err {
+	var roleID int
+	row := conn.QueryRow(ctx, "SELECT username, role_id FROM users WHERE id=$1", userID)
+	switch err := row.Scan(&username, &roleID); err {
 	case nil:
-		c.JSON(http.StatusOK, gin.H{"id": userID, "username": username})
+		c.JSON(http.StatusOK, gin.H{"id": userID, "username": username, "role_id": roleID})
 	case sql.ErrNoRows:
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 	default:

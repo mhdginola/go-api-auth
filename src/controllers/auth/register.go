@@ -5,7 +5,6 @@ import (
 	"ginauth/src/config"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterHandler(c *gin.Context) {
@@ -14,6 +13,7 @@ func RegisterHandler(c *gin.Context) {
 	var req struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
+		RoleID   int    `json:"role_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -39,14 +39,11 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	// Hash password
-	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-
 	// Insert user
 	var id int
 	err = conn.QueryRow(ctx,
-		"INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id",
-		req.Username, string(hash),
+		"INSERT INTO users (username, password, role_id) VALUES ($1, encode(digest($2, 'sha256'), 'hex'), $3) RETURNING id",
+		req.Username, req.Password, req.RoleID,
 	).Scan(&id)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to create user"})
@@ -56,5 +53,6 @@ func RegisterHandler(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"id":       id,
 		"username": req.Username,
+		"role_id":  req.RoleID,
 	})
 }
